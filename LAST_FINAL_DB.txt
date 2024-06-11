@@ -1,0 +1,611 @@
+
+-1
+create table faculties(
+	faculty_id int primary key,
+	faculty_name varchar(255)
+);
+
+-2
+create table departments(
+	department_id int primary key,
+	department_name varchar(255) not null,
+	faculty_id int references faculties(faculty_id)
+);
+
+-3
+create table instructors(
+	instructor_id int primary key,
+	first_name varchar(255) not null,
+	last_name varchar(255) not null,
+	specific_research_areas varchar(255),
+	email varchar(255) not null,
+	role varchar(255) not null,
+	department_id int references departments(department_id)
+);
+
+-4
+create table staff(
+	staff_id int primary key,
+	first_name varchar(255) not null,
+	last_name varchar(255) not null,
+	email varchar(255) not null,
+	role varchar(255) not null,
+	department_id int references departments(department_id)
+);
+
+-5
+create table advisors(
+	advisor_id int primary key,
+	instructor_id int references instructors(instructor_id)
+);
+
+-6
+create table courses(
+	course_id int primary key,
+	course_name varchar(60),
+	credits int ,
+	price int,
+	instructor_id int references instructors(instructor_id)
+);
+
+-7
+create table students(
+	student_id serial primary key,
+	first_name varchar(255),
+	last_name varchar(255),
+	gender varchar(255),
+	nationality varchar(255),
+	citizenship varchar(255),
+	advisor_id int references advisors(advisor_id),
+	graduated boolean default false
+);
+
+-8
+create table enrollments(
+	enrollment_id int primary key,
+	enrollment_date date,
+	student_id int references students(student_id),
+	course_id int references courses(course_id)
+);
+
+-9
+create table transcript(
+	transcript_id int primary key,
+	student_id int references students(student_id),
+	course_id int references courses(course_id),
+	semester varchar(255),
+	year_start int,
+	year_complete int,
+	grade varchar(2)
+
+);
+
+-10
+create table admissions(
+	admission_id int primary key,
+	student_id int references students(student_id),
+	admission_date date,
+	admission_status boolean,
+	unt_result int,
+	grant_type varchar(255)
+	
+);
+
+-11
+create table studentcontacts(
+	contact_id int primary key , 
+	student_id int references students(student_id),
+	email_address varchar(255),
+	contact_phone varchar(255),
+	address varchar(255),
+	emergency_contact_name varchar(255),
+	emergency_contact_phone varchar(255)
+	
+);
+
+-12
+create table studentfees(
+	fee_id int primary key,
+	student_id int references students(student_id),
+	fee_type varchar(255),
+	fee_cost int,
+	payment_type varchar(255),
+	start_date date,
+	expire_date date,
+	status varchar(255)
+);
+
+-13
+create table healthservices(
+	visit_id int primary key,
+	student_id int references students(student_id),
+	visit_date date , 
+	visit_start_time time , 
+	visit_end_time time,
+	diagnosis varchar(255),
+	treatment varchar(255),
+	check_student boolean
+);
+
+-14
+create table studyabroad(
+	study_abroad_id int primary key,
+	student_id int references students(student_id),
+	program_name varchar(255),
+	country varchar(255),
+	city varchar(255),
+	start_date date ,
+	end_date date , 
+	check_status varchar(255)
+);
+
+-15
+create table studentachievements(
+	achievement_id int primary key,
+	student_id int references students(student_id),
+	achievement_type varchar(255),
+	description varchar(255),
+	date_of_achievement date
+);
+
+-16
+create table internship(
+	internship_id int primary key , 
+	student_id int references students(student_id),
+	company varchar(255),
+	position varchar(255),
+	start_date date,
+	end_date date 
+);
+
+-17
+create table mealplans(
+	meal_plan_id int primary key,
+	student_id int references students(student_id),
+	meal_plan_type varchar(255),
+	meal_price int 
+);
+
+-18
+create table alumni(
+	alumni_id int primary key,
+	student_id int references students(student_id),
+	graduation_year int,
+	work_status boolean default false
+);
+
+-19
+create table graduation(
+	graduation_id int primary key , 
+	student_id int references students(student_id),
+	graduation_date date,
+	alumni_status boolean default false
+);
+
+-20
+create table degreeprogress(
+	progress_id int primary key ,
+	student_id int references students(student_id),
+	credits_earned int, 
+	major varchar(255)
+);
+
+-21
+create table studentevents(
+	event_id int primary key,
+	event_name varchar(255),
+	event_type varchar(255),
+	event_date date , 
+	start_time time,
+	end_time  time,
+	location varchar(255),
+	organizator varchar(255)
+	
+);
+
+-22
+create table studentgroup(
+	student_group_id int ,
+	student_group_name varchar(255),
+	student_group_description varchar(255),
+	student_group_location varchar(255),
+	student_id int  references students(student_id)
+);
+
+-23
+create table library(
+	r_id int primary key,
+	title varchar(255),
+	author varchar(255),
+	type varchar(255),
+	check_resource boolean default false,
+	take_date date, 
+	return_date date,
+	student_id int references students(student_id)
+);
+
+
+-24
+create table housing(
+	house_id int primary key,
+	housing_name varchar(255),
+	room_number int ,
+	price int,
+	check_occupied boolean default false,
+	student_id int references students(student_id)
+);
+
+
+
+
+--1 List of Students and Their Enrollments
+
+select s.student_id , s.first_name , s.last_name , c.course_name , e.enrollment_date
+from students s 
+join enrollments e on e.student_id = s.student_id
+join courses c on c.course_id = e.course_id
+order by s.student_id , e.enrollment_date;
+
+
+--2 Retrieve a list of all students and the courses they are currently enrolled in, including course details.
+select
+    s.student_id,
+    s.first_name,
+    s.last_name,
+    e.enrollment_id,
+    c.course_name,
+    c.course_id,
+    e.enrollment_date
+from
+    students s
+join
+    enrollments e ON s.student_id = e.student_id
+join
+    courses c ON e.course_id = c.course_id
+order by
+    s.student_id, e.enrollment_date;
+	
+--3 Find the students who do not have assigned advisors.
+select s.student_id , s.first_name, s.last_name
+from students s 
+where advisor_id is null;
+--4 Identify the student(s) with the highest GPA and their academic records.
+with student_gpa as (
+    select
+        t.student_id,
+       round( avg(case
+            when t.grade = 'A' then 4.0
+			when t.grade = 'A-' then 3.67
+			when t.grade = 'B+' then 3.33
+            when t.grade = 'B' then 3.0
+			when t.grade = 'B-' then 2.67
+            when t.grade = 'C+' then 2.33
+			when t.grade = 'C' then 2.0
+			when t.grade = 'C-' then 1.67
+            when t.grade = 'D' then 1.0
+			when t.grade = 'FX' then 0.0
+            else 0.0
+        end) , 2) as gpa
+    from
+        transcript t
+    group by
+        t.student_id
+)
+
+select
+    s.student_id,
+    s.first_name,
+    s.last_name,
+    s_g.gpa,
+    
+    t.semester,
+    t.year_start,
+    t.year_complete,
+    t.grade
+from
+    student_gpa s_g
+join
+    students s on s_g.student_id = s.student_id
+join
+    transcript t on s_g.student_id = t.student_id and s_g.gpa = (
+        select MAX(gpa) FROM student_gpa
+    );
+
+
+
+--5 Calculate the average GPA for students in each major.
+
+	
+select
+    d.department_id,
+    d.department_name,
+    round(avg(case
+        	when t.grade = 'A' THEN 4.0
+			when t.grade = 'A-' then 3.67
+			when t.grade = 'B+' THEN 3.33
+            when t.grade = 'B' THEN 3.0
+			when t.grade = 'B-' THEN 2.67
+            when t.grade = 'C+' THEN 2.33
+			when t.grade = 'C' THEN 2.0
+			when t.grade = 'C-' THEN 1.67
+            when t.grade = 'D' THEN 1.0
+			when t.grade = 'FX' then 0.0
+            else 0.0
+    end) , 2 ) AS average_gpa
+from
+    departments d
+join
+    instructors i on d.department_id = i.department_id
+join
+    students s on i.instructor_id = s.advisor_id
+join
+    transcript t on s.student_id = t.student_id
+where
+    t.grade is not null
+group by
+    d.department_id, d.department_name;
+
+
+
+--6 Determine which departments offer the most courses by counting the number of courses offered in each department.
+select
+    d.department_name,
+    count(c.course_id) as course_count
+from
+    departments d
+join
+    instructors i  ON d.department_id = i.department_id
+join 
+	courses c on i.instructor_id = c.instructor_id
+group by
+    d.department_name
+order by
+    course_count desc;
+
+--7 List faculty advisors along with the students they advise.
+select
+    f.faculty_id,
+    f.faculty_name,
+    i.instructor_id AS advisor_id,
+    i.first_name AS advisor_first_name,
+    i.last_name AS advisor_last_name,
+    s.student_id,
+    s.first_name ,
+    s.last_name 
+from
+    faculties f
+join
+    departments d on f.faculty_id = d.faculty_id
+join
+    instructors i on d.department_id = i.department_id
+left join
+    students s on i.instructor_id = s.advisor_id
+order by s.advisor_id asc;
+
+--8 Find the student groups with the most members and list the group names and member counts.
+select sg.student_group_name , count(sg.student_id)
+from studentgroup sg
+group by sg.student_group_name;
+--9 Calculate the occupancy rate of the university's student housing facilities.
+select
+	count(*) as total_room_count,
+    sum(case when h.check_occupied then 1 else 0 end) as occupied_room_count,
+    round((sum(case when  h.check_occupied then 1 else 0 end) * 100.0 / count(*)) , 2 ) as occupancy_rate
+from
+    housing h;
+	
+	
+
+
+--10 Compute the average cost of meal plans for different student groups (e.g., freshmen, sophomores, etc.).
+select sg.student_group_name ,
+		round( avg(mp.meal_price) , 2) as price
+from studentgroup sg
+join students s on sg.student_id = s.student_id
+left join mealplans mp on s.student_id = mp.student_id
+group by sg.student_group_name;
+
+
+--11 Calculate the total tuition revenue generated by each academic department.
+select
+    d.department_id,
+    d.department_name,
+    sum(case when a.grant_type = 'grant' then 0 else c.price end) * count(e.course_id) as tuition
+from
+    departments d
+join
+    instructors i on d.department_id = i.department_id
+join
+    courses c on i.instructor_id = c.instructor_id
+join
+    enrollments e on c.course_id = e.course_id
+join
+    students s on e.student_id = s.student_id
+join admissions a on s.student_id  = a.student_id
+group by
+    d.department_id, d.department_name;
+
+
+
+
+--12 Find the number of available library resources and the number checked out by students.
+select 
+	(select count(*) from library where check_resource = false) as available,
+	(select count(*) from library where check_resource = true) as checked_out;
+
+
+--13 Calculate the number of student visits to health services and their average visit duration.
+select  count(*) , avg(visit_end_time - visit_end_time)
+from healthservices;
+
+--14 List student achievements (awards, honors) and group them by the student's department.
+select sa.student_id,  d.department_name , sa.achievement_type
+from studentachievements sa
+join students s on sa.student_id = s.student_id
+join instructors i on s.advisor_id = i.instructor_id
+join departments d on i.department_id = d.department_id;
+
+--15 Determine the percentage of students who have participated in internships.
+select
+    round((count(distinct i.student_id) * 100.0 / count(distinct s.student_id)), 2) as percentage
+from
+    students s
+left join
+    internship i  on s.student_id = i.student_id;
+	
+
+--16 Find the countries where students have studied abroad and the number of students in each country.
+select sa.country , count(sa.student_id) as total
+from studyabroad sa
+group by sa.country
+order by total asc;
+
+--17 List the upcoming campus events and their details, sorted by date.
+select * from studentevents where event_date > current_date order by event_date;
+
+
+
+--18 Determine which departments produce the most employed alumni.
+select d.department_id , d.department_name , count(distinct a.student_id) as employed
+from alumni a 
+join students s on a.student_id = a.student_id
+join advisors ad on s.advisor_id = ad.advisor_id
+join instructors i on ad.instructor_id = i.instructor_id
+join departments d on i.department_id = i.department_id
+where a.work_status = true
+group by d.department_id , d.department_name
+order by employed desc;
+
+
+
+--19 Identify faculty members who have expertise in specific research areas, based on their academic records.
+select
+    i.instructor_id,
+    i.first_name,
+    i.last_name,
+    i.specific_research_areas
+from
+    instructors i
+where
+    i.specific_research_areas is not null;
+
+--20 Analyze the historical enrollment data to identify trends in student enrollment over the past few years.
+
+select
+extract(year from e.enrollment_date ) as en_year, count(distinct e.student_id) as en_student
+from enrollments e 
+group by en_year
+order by en_year;
+
+
+--21 Verify if students enrolling in advanced courses meet the prerequisites by checking their transcript records.
+--22 List students with outstanding fees, including the total amount owed.
+
+select s.student_id , s.first_name , s.last_name , sum(sf.fee_cost) as total_cost
+from students s 
+join studentfees sf on s.student_id = sf.student_id
+where sf.status = 'unpaid'
+group by s.student_id , s.first_name , s.last_name;
+
+
+--23 Identify instructors who are teaching multiple courses in the same term and list the courses they are teaching.
+select i.first_name , i.last_name , c.course_name
+from courses c
+join instructors i on c.instructor_id = i.instructor_id
+where c.instructor_id in (
+	select instructor_id 
+	from courses 
+	group by instructor_id 
+	having  count(course_id) > 1
+);
+
+--24 Calculate statistics on student diversity, such as the distribution of gender, ethnicity, or nationality.
+
+select gender , nationality , citizenship , COUNT(*) AS student_count
+from students
+group by gender , nationality , citizenship;
+--25 Find the most popular combinations of courses (sets of courses taken together) among students.
+
+select 
+		en_1.course_id as first_course,
+		en_2.course_id as second_course,
+		count(distinct en_1.student_id) as total_students
+from 
+		enrollments en_1
+join enrollments en_2 on en_1.student_id = en_2.student_id and en_1.course_id > en_2.course_id
+group by en_1.course_id , en_2.course_id
+order by total_students desc;
+
+
+--26 Compare the academic performance (GPA) of students based on their faculty advisors.
+select a.advisor_id,
+		 round(avg(case
+        	when t.grade = 'A' THEN 4.0
+			when t.grade = 'A-' then 3.67
+			when t.grade = 'B+' THEN 3.33
+            when t.grade = 'B' THEN 3.0
+			when t.grade = 'B-' THEN 2.67
+            when t.grade = 'C+' THEN 2.33
+			when t.grade = 'C' THEN 2.0
+			when t.grade = 'C-' THEN 1.67
+            when t.grade = 'D' THEN 1.0
+			when t.grade = 'FX' then 0.0
+            else 0.0
+    end)  , 2) as average_gpa
+from advisors a 
+join students s on a.advisor_id = s.advisor_id
+join transcript t on s.student_id = t.student_id
+group by a.advisor_id
+order by average_gpa desc;
+
+--27 Identify student groups that have members from a wide range of majors, promoting interdisciplinary collaboration.
+select sg.student_group_id, sg.student_group_name , count( dp.major) as major_count
+from studentgroup sg 
+join students s on sg.student_id = s.student_id
+join degreeprogress dp on s.student_id = dp.student_id
+group by sg.student_group_id, sg.student_group_name 
+order by major_count desc;
+--28 List courses with consistently high enrollment, helping with scheduling and resource allocation.
+--29 Calculate the average time it takes students to graduate, considering their major and any changes in degree programs.
+--30 Determine if students who complete internships have a higher graduation rate compared to those who do not.
+
+select internship_status ,
+round(avg(case when graduated then 1 else 0 end )  , 2) as graduation_rate 
+from ( select s.student_id,
+	 	case when i.internship_id is not null then 'Completed Internship' else 'No Internship' end as internship_status,s.graduated
+	  from students s 
+	  left join internship i on s.student_id = i.student_id
+	 ) as intership_inforamation
+group by internship_status;
+		
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
